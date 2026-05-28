@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+{% block title %}Manage Users – TechRoom Manager{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fa-solid fa-users"></i>
+      All Users
+      <span class="count-badge">{{ users|length }}</span>
+    </h3>
+  </div>
+
+  <div class="card-body no-pad">
+    {% if users %}
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr class="table-row-anim">
+            <td class="mono text-muted">#{{ u.id }}</td>
+            <td>
+              <div class="device-cell">
+                <i class="fa-solid fa-user device-icon"></i>
+                {{ u.username }}
+                {% if u.id == session.user_id %}
+                <span class="dept-tag">You</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <em class="role-badge role-{{ u.role }}">{{ u.role }}</em>
+            </td>
+            <td class="mono text-muted">{{ u.created_at or '—' }}</td>
+            <td>
+              {% if u.id != session.user_id %}
+              <div class="action-btns">
+  <a href="{{ url_for('edit_user', user_id=u.id) }}"
+     class="btn-icon btn-edit" title="Edit User">
+    <i class="fa-solid fa-pen"></i>
+  </a>
+  <button
+    class="btn-icon btn-delete"
+    title="Delete User"
+    data-url="{{ url_for('delete_user', user_id=u.id) }}"
+    onclick="openDeleteModal(this.dataset.url)"
+  >
+    <i class="fa-solid fa-trash"></i>
+  </button>
+</div>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-users"></i>
+      <p>No users found.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

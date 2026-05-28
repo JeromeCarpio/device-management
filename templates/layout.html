@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}TechRoom Manager{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="fa-solid fa-microchip"></i></div>
+    <div class="brand-text">
+      <span class="brand-name">TechRoom</span>
+      <span class="brand-sub">Device Manager</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+    </a>
+    <a href="{{ url_for('devices') }}" class="nav-link {% if request.endpoint in ['devices','edit_device'] %}active{% endif %}">
+      <i class="fa-solid fa-server"></i><span>All Devices</span>
+    </a>
+    {% if session.role == 'user' %}
+    <a href="{{ url_for('add_device') }}" class="nav-link {% if request.endpoint == 'add_device' %}active{% endif %}">
+      <i class="fa-solid fa-circle-plus"></i><span>Add Record</span>
+    </a>
+    {% endif %}
+
+{% if session.role == 'admin' %}
+<a href="{{ url_for('manage_users') }}" class="nav-link {% if request.endpoint == 'manage_users' %}active{% endif %}">
+  <i class="fa-solid fa-users"></i><span>Manage Users</span>
+</a>
+{% endif %}
+
+    <div class="nav-section-label">Account</div>
+    <div class="nav-link nav-user-info">
+      <i class="fa-solid fa-user-circle"></i>
+      <span>
+        {{ session.username }}
+        <em class="role-badge role-{{ session.role }}">{{ session.role }}</em>
+      </span>
+    </div>
+    <a href="{{ url_for('logout') }}" class="nav-link nav-logout">
+      <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span class="version-tag">v1.0.0</span>
+  </div>
+</aside>
+
+<!-- ── Main Wrapper ────────────────────── -->
+<div class="main-wrapper">
+  <header class="topbar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="topbar-actions">
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="topbar-avatar">{{ session.username[0]|upper }}</div>
+    </div>
+  </header>
+
+  <div class="flash-container" id="flashContainer">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}" role="alert">
+            <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-xmark{% elif category == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <main class="page-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <h3 class="modal-title">Confirm Deletion</h3>
+    <p class="modal-body">Are you sure you want to delete this device record? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <form id="deleteForm" method="POST">
+        <button type="submit" class="btn btn-danger">
+          <i class="fa-solid fa-trash"></i> Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

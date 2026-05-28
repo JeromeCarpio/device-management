@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+{% block title %}All Devices – TechRoom Manager{% endblock %}
+{% block page_title %}Device Records{% endblock %}
+
+{% block content %}
+
+<div class="card filter-card">
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('devices') }}" class="filter-form" id="filterForm">
+      <div class="filter-row">
+        <div class="filter-group filter-search">
+          <i class="fa-solid fa-magnifying-glass filter-icon"></i>
+          <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Search device, brand, serial, department…"
+            value="{{ search }}"
+          />
+        </div>
+
+        <div class="filter-group">
+          <select name="department" class="form-control" onchange="this.form.submit()">
+            <option value="">All Departments</option>
+            {% for dept in departments %}
+            <option value="{{ dept }}" {% if department == dept %}selected{% endif %}>{{ dept }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <select name="status" class="form-control" onchange="this.form.submit()">
+            <option value="">All Status</option>
+            <option value="incoming" {% if status == 'incoming' %}selected{% endif %}>Incoming</option>
+            <option value="outgoing" {% if status == 'outgoing' %}selected{% endif %}>Outgoing</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <input type="date" name="date_from" class="form-control" value="{{ date_from }}" title="From date"/>
+        </div>
+
+        <div class="filter-group">
+          <input type="date" name="date_to" class="form-control" value="{{ date_to }}" title="To date"/>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-filter"></i> Filter
+          </button>
+          <a href="{{ url_for('devices') }}" class="btn btn-ghost btn-sm">
+            <i class="fa-solid fa-rotate-left"></i>
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fa-solid fa-server"></i>
+      All Records
+      <span class="count-badge">{{ total_count }}</span>
+    </h3>
+    {% if session.role == 'user' %}
+    <a href="{{ url_for('add_device') }}" class="btn btn-primary btn-sm">
+      <i class="fa-solid fa-plus"></i> Add Record
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="card-body no-pad">
+    {% if devices %}
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Device Type</th>
+            <th>Brand</th>
+            <th>Serial No.</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Remarks</th>
+            {% if session.role == 'admin' %}
+            <th>Actions</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in devices %}
+          <tr class="table-row-anim">
+            <td class="mono text-muted">#{{ d.id }}</td>
+            <td>
+              <div class="device-cell">
+                <i class="fa-solid fa-{{ 'laptop' if 'Laptop' in d.device_type else 'desktop' if 'Desktop' in d.device_type else 'print' if 'Print' in d.device_type else 'server' }} device-icon"></i>
+                {{ d.device_type }}
+              </div>
+            </td>
+            <td>{{ d.brand_name }}</td>
+            <td class="mono">{{ d.serial_number }}</td>
+            <td><span class="dept-tag">{{ d.department }}</span></td>
+            <td>
+              <span class="status-badge status-{{ d.status }}">
+                <i class="fa-solid {% if d.status == 'incoming' %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i>
+                {{ d.status|capitalize }}
+              </span>
+            </td>
+            <td class="mono text-muted">{{ d.date }}</td>
+            <td class="remarks-cell">
+              {% if d.remarks %}
+                <span class="remarks-text" title="{{ d.remarks }}">{{ d.remarks[:40] }}{% if d.remarks|length > 40 %}…{% endif %}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            {% if session.role == 'admin' %}
+            <td>
+              <div class="action-btns">
+                <a href="{{ url_for('edit_device', device_id=d.id) }}" class="btn-icon btn-edit" title="Edit">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+                <button
+    class="btn-icon btn-delete"
+    title="Delete"
+    data-url="{{ url_for('delete_device', device_id=d.id) }}"
+    onclick="openDeleteModal(this.dataset.url)"
+>
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="pagination-wrapper">
+      <div class="pagination-info">
+        Showing page {{ page }} of {{ total_pages }} ({{ total_count }} records)
+      </div>
+      <div class="pagination">
+        {% if page > 1 %}
+        <a href="{{ url_for('devices', page=page-1, search=search, department=department, status=status, date_from=date_from, date_to=date_to) }}" class="page-btn">
+          <i class="fa-solid fa-chevron-left"></i>
+        </a>
+        {% endif %}
+
+        {% for p in range(1, total_pages+1) %}
+          {% if p == page %}
+          <span class="page-btn page-active">{{ p }}</span>
+          {% elif p <= 3 or p > total_pages-2 or (p >= page-1 and p <= page+1) %}
+          <a href="{{ url_for('devices', page=p, search=search, department=department, status=status, date_from=date_from, date_to=date_to) }}" class="page-btn">{{ p }}</a>
+          {% elif p == 4 or p == total_pages-2 %}
+          <span class="page-ellipsis">…</span>
+          {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="{{ url_for('devices', page=page+1, search=search, department=department, status=status, date_from=date_from, date_to=date_to) }}" class="page-btn">
+          <i class="fa-solid fa-chevron-right"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <p>
+        {% if search or department or status or date_from or date_to %}
+          No records match your filters. <a href="{{ url_for('devices') }}">Clear filters</a>
+        {% else %}
+          No device records found. <a href="{{ url_for('add_device') }}">Add the first one.</a>
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

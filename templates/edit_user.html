@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+{% block title %}Edit User – TechRoom Manager{% endblock %}
+{% block page_title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="form-page-wrapper">
+  <div class="card form-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <i class="fa-solid fa-user-pen"></i> Edit User #{{ user.id }}
+      </h3>
+      <a href="{{ url_for('manage_users') }}" class="btn btn-sm btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Back
+      </a>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('edit_user', user_id=user.id) }}" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="username">
+            <i class="fa-solid fa-user"></i> Username <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="form-control"
+            value="{{ user.username }}"
+            required
+            minlength="3"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-shield-halved"></i> Role <span class="required">*</span>
+          </label>
+          <div class="role-selector">
+            <label class="role-option">
+              <input type="radio" name="role" value="user"
+                {% if user.role == 'user' %}checked{% endif %}>
+              <div class="role-card">
+                <i class="fa-solid fa-user"></i>
+                <strong>User</strong>
+                <small>Add records only</small>
+              </div>
+            </label>
+            <label class="role-option">
+              <input type="radio" name="role" value="admin"
+                {% if user.role == 'admin' %}checked{% endif %}>
+              <div class="role-card">
+                <i class="fa-solid fa-user-gear"></i>
+                <strong>Admin</strong>
+                <small>Full access</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-lock"></i> New Password
+          </label>
+          <span class="field-hint">Leave blank to keep current password</span>
+          <div class="input-group">
+            <input
+              type="password"
+              id="new_password"
+              name="new_password"
+              class="form-control"
+              placeholder="Enter new password (min 6 characters)"
+              minlength="6"
+            />
+            <button type="button" class="input-eye" onclick="togglePassword('new_password', this)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-lock-open"></i> Confirm New Password
+          </label>
+          <div class="input-group">
+            <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              class="form-control"
+              placeholder="Re-enter new password"
+            />
+            <button type="button" class="input-eye" onclick="togglePassword('confirm_password', this)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="{{ url_for('manage_users') }}" class="btn btn-ghost">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
